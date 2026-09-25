@@ -1,0 +1,10 @@
+.venv/
+.venv-build/
+__pycache__/
+build/
+dist/
+publicar/
+updates/
+salida/
+.constancias_*.json
+actualizaciones.log

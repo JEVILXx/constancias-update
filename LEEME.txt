@@ -1,0 +1,292 @@
+CÓMO USAR EL GENERADOR DE CONSTANCIAS Y QR
+=======================================
+
+Contenido de esta carpeta:
+- constancias_gui.py       -> INTERFAZ GRÁFICA (recomendado, ábrelo con doble clic o "python3 constancias_gui.py")
+- generar_constancias.py   -> versión de consola, solo modo Constancias (para quien prefiera línea de comandos)
+- core/                    -> motor compartido por los dos anteriores, dividido en módulos (no lo borres, ambos lo necesitan)
+- gui/                     -> el código de la interfaz gráfica, dividido en módulos (lo usa constancias_gui.py)
+- plantilla.jpeg           -> tu diseño de constancia de ejemplo
+- datos_ejemplo.xlsx       -> Excel de ejemplo, solo para que veas el formato
+
+El código está organizado en dos paquetes para que ningún archivo sea
+demasiado largo — si algún día quieres editar algo, aquí está el mapa:
+    core/constancias.py      -> Config, arma el texto sobre la plantilla, procesa el Excel
+    core/qr.py                -> ConfigQR, detecta el recuadro y pega el QR en la plantilla
+    core/lineas.py             -> detección automática/manual de la línea del nombre
+    core/correo.py             -> envío por SMTP con adjunto, cuentas y límite diario
+    core/fuentes.py            -> carga de tipografías
+    core/utils.py              -> nombres de archivo, columnas de Excel, guardar PDF
+    gui/app.py                 -> arma la ventana principal
+    gui/panel_constancias.py   -> todo el panel del modo Constancias
+    gui/panel_qr.py            -> todo el panel del modo QR
+    gui/comunes.py             -> layout general, cola de progreso, drag & drop
+    gui/dialogos.py            -> ventanas de marcar línea/recuadro y agregar cuenta
+    gui/dnd.py                 -> soporte de arrastrar y soltar (opcional)
+    gui/estilos.py, gui/rutas.py -> colores y rutas de archivo
+
+La interfaz tiene DOS MODOS, seleccionables con los botones de arriba:
+  Constancias (Excel)     -> escribe nombre + matrícula sobre una plantilla
+  Códigos QR (carpeta)    -> pega imágenes de QR ya generadas sobre una plantilla
+
+1) INSTALA LO NECESARIO (solo la primera vez)
+   /usr/bin/python3 -m pip install pandas openpyxl pypdf pillow numpy --break-system-packages
+
+   Si al abrir la interfaz te marca "No module named tkinter", instala además:
+   sudo apt install python3-tk
+
+   OPCIONAL (para poder arrastrar archivos a la ventana en vez de usar
+   "Examinar…" cada vez):
+   /usr/bin/python3 -m pip install tkinterdnd2 --break-system-packages
+   Si no la instalas, el programa funciona exactamente igual, solo que
+   sin esa comodidad — todos los botones "Examinar…" siguen funcionando.
+
+2A) MODO CONSTANCIAS — prepara tu Excel
+   Debe tener al menos una columna con el nombre completo, por ejemplo
+   "Nombre completo". Si además quieres que aparezca la matrícula,
+   agrega una columna "Matrícula".
+
+   IMPORTANTE si tu matrícula tiene ceros a la izquierda (ej. 00123):
+   en Excel selecciona esa columna, clic derecho -> Formato de celdas ->
+   Texto, ANTES de escribir los datos. Si no lo haces, Excel borra los
+   ceros a la izquierda automáticamente (esto lo hace Excel, no el programa).
+
+2B) MODO QR — prepara tu carpeta
+   Junta en una sola carpeta todas las imágenes de QR ya generadas
+   (.png, .jpg, .jpeg, .webp...), cada una ya nombrada por persona,
+   por ejemplo:
+     Juan_Perez_214578.png
+     Maria_Lopez_198765.png
+   Ese mismo nombre (sin la extensión) se usa para el PDF de salida,
+   así sabes cuál es cuál.
+
+3A) USANDO LA INTERFAZ GRÁFICA (más fácil)
+   python3 constancias_gui.py
+
+   - Arriba, elige el modo: "Constancias (Excel)" o "Códigos QR (carpeta)".
+   - Botones "Examinar…" para elegir tu Excel/carpeta de QRs y tu plantilla.
+   - En modo Constancias, las columnas de nombre/matrícula se detectan
+     solas; puedes cambiarlas en los menús desplegables.
+   - A la derecha se ve una vista previa en vivo con el primer registro
+     (o el primer QR de la carpeta).
+   - Botón "Generar constancias" / "Generar QRs": verás la barra de
+     progreso y el detalle de cada persona en la consola de abajo.
+   - Botón "Abrir carpeta de salida" para ver los PDFs al terminar.
+
+3B) USANDO LA CONSOLA (solo modo Constancias)
+   python3 generar_constancias.py tu_archivo.xlsx
+
+   Si tus columnas se llaman distinto a "Nombre"/"Matrícula", indícalo:
+   python3 generar_constancias.py tu_archivo.xlsx --col-nombre "Alumno" --col-matricula "No. Control"
+
+4) RESULTADO
+   Se crea la carpeta de salida con:
+   - Modo Constancias: un PDF por persona (Constancia_NombreApellido.pdf)
+     + Constancias_TODAS.pdf con todas juntas.
+   - Modo QR: una IMAGEN PNG por QR (se abre con cualquier visor de
+     fotos, se puede mandar por WhatsApp, subir a redes, etc.), con el
+     mismo nombre que traía la imagen original (Juan_Perez_214578.png)
+     + un QRs_TODOS.pdf con todas juntas, solo por si las quieres
+     mandar a imprimir de un jalón (no es el resultado principal).
+
+5) POSICIÓN AUTOMÁTICA (se adapta a cualquier plantilla, en los dos modos)
+   Ya NO hay coordenadas fijas en el código. Cada vez que eliges una
+   plantilla nueva, el programa detecta solo:
+     • En modo Constancias: la línea "A: ______" donde va el nombre.
+     • En modo QR: el recuadro claro (como el cuadro a cuadros del
+       ejemplo) donde va pegado el código QR.
+
+   En la interfaz, junto a "Posición del nombre" / "Posición del QR"
+   verás uno de estos mensajes:
+     Detectado automáticamente   -> todo bien, no hay que hacer nada
+     Marcado manualmente por ti  -> estás usando una marca manual
+     No se detectó                -> usa el botón de abajo
+
+   Si con una plantilla nueva el nombre o el QR quedan mal ubicados en
+   la vista previa:
+     1. Presiona "Marcar línea manualmente" (Constancias) o
+        "Marcar recuadro manualmente" (QR).
+     2. Constancias: haz clic en el INICIO de la línea (justo después
+        de "A:") y luego en el FINAL de la línea.
+        QR: haz clic en la esquina SUPERIOR IZQUIERDA del recuadro y
+        luego en la INFERIOR DERECHA.
+     3. Presiona "Guardar".
+   Esa marca queda guardada para ESA plantilla exacta (aunque cierres
+   el programa), y se puede quitar con "Volver a automático" para que
+   vuelva a detectarse sola.
+
+   Las marcas manuales se guardan en ".constancias_lineas.json"
+   (Constancias) y ".constancias_cajas_qr.json" (QR) en esta misma
+   carpeta — no los borres si quieres conservar tus ajustes.
+
+6) ENVIAR LAS CONSTANCIAS POR CORREO (opcional, solo modo Constancias)
+   En la interfaz, dentro del modo Constancias, marca la casilla
+   "Enviar también por correo a cada persona". Ahí abajo verás la lista
+   de "Cuentas guardadas" (empieza vacía) con tres botones:
+
+     • Agregar cuenta: abre una ventanita para dar de alta una cuenta
+       remitente:
+         - Alias: un nombre para identificarla tú (ej. "Mi Gmail").
+         - Correo: la dirección que va a mandar los correos.
+         - Contraseña de app: OJO, si usas Gmail esto NO es tu
+           contraseña normal. Tienes que:
+             1. Activar la verificación en dos pasos en tu cuenta de
+                Google (myaccount.google.com/security).
+             2. Ir a myaccount.google.com/apppasswords y generar una
+                "contraseña de aplicación" (son 16 letras sin espacios).
+             3. Pegar esa contraseña de 16 letras en este campo.
+         - Límite diario: cuántos correos puede mandar esa cuenta antes
+           de que el programa pase solo a la siguiente (Gmail normal
+           ~500, Google Workspace/institucional ~2000).
+         - "Recordar esta contraseña en este equipo": si la marcas, se
+           guarda en ".constancias_cuentas_correo.json" en esta misma
+           carpeta (texto simple, sin cifrar) para no pedírtela cada
+           vez — solo actívalo en tu propia computadora. Si no la
+           marcas, el programa te la pedirá la próxima vez que la uses
+           (pero no cada tanda dentro de la misma sesión).
+     • Cerrar sesión: "olvida" la contraseña guardada/en memoria de
+       la cuenta seleccionada (el alias y el correo se quedan en la
+       lista, solo te la vuelve a pedir la próxima vez).
+     • Eliminar: la borra por completo de la lista (pide confirmar).
+
+   Selecciona en la lista una o varias cuentas (Ctrl+clic, o Shift+clic
+   para un rango) — esas son las que se van a usar. Si seleccionas más
+   de una, el programa usa la primera hasta que llega a su límite
+   diario, y ahí solito pasa a la siguiente, sin perder el lugar: si
+   cierras el programa y lo vuelves a abrir el mismo día, se acuerda
+   cuántos ya mandó cada cuenta y sigue justo donde se quedó (el
+   conteo se reinicia solo al día siguiente).
+
+   También elige la "Columna de correo" (se detecta sola si tu Excel
+   trae una columna como "Correo" o "Email"). Al generar, además del
+   PDF, se le manda un correo a cada persona con SU constancia adjunta.
+   Si a alguien le falta el correo o está mal escrito, no se envía nada
+   para esa persona pero el programa sigue con las demás normalmente
+   (lo verás anotado en la consola de Progreso, incluyendo cuándo se
+   cambió de una cuenta a otra por límite, o si todas las cuentas ya
+   llegaron a su tope por hoy).
+
+   MENSAJE DEL CORREO — automático o redactado por ti:
+   Debajo de las cuentas hay dos opciones:
+     • Mensaje automático: usa un título y texto genéricos ya
+       incluidos ("Tu constancia de participación" / "Hola, adjunto tu
+       constancia..."). No tienes que escribir nada.
+     • Redactar el mío: aparecen dos campos para que pongas TÚ:
+         - Título: el asunto del correo (puedes usar {nombre} aquí si
+           quieres, ej. "¡Felicidades {nombre}!").
+         - Mensaje: SOLO escribes el texto que va después del saludo.
+           El saludo "Hola [nombre de la persona]," se agrega SOLITO al
+           principio de cada correo — no hace falta que lo escribas ni
+           que pongas {nombre} tú mismo, así nunca sale mal (repetido,
+           genérico o sin personalizar). Si de todas formas quieres
+           poner {nombre} en otra parte del mensaje, también funciona.
+       Lo que escribas se recuerda para la próxima vez que abras el
+       programa.
+
+7) UN SOLO CÓDIGO QR EN VEZ DE UNA CARPETA (modo QR)
+   Si nada más tienes un QR que colocar (no una tanda), en el modo
+   "Códigos QR" elige "Un solo archivo" en vez de "Carpeta
+   (varios)", y selecciona directamente la imagen del QR. Se genera una
+   sola imagen PNG con ese QR ya puesto en la plantilla, nombrada igual
+   que el archivo original — sin necesidad de meterlo a una carpeta.
+   El modo "Carpeta (varios)" sigue igual que antes, para cuando sí
+   tengas muchos QR de un jalón.
+
+8) SELECCIONAR CUENTAS MÁS RÁPIDO
+   Ya no se desmarca la selección de cuentas después de generar — si
+   vuelves a darle "Generar constancias" para mandar más, las cuentas
+   que ya habías marcado siguen marcadas.
+   También hay un botón "Usar todas" junto a la lista de cuentas que
+   selecciona todas de un clic, sin tener que hacer Ctrl+clic una por
+   una. Si de todas formas quieres usar solo algunas, sigues pudiendo
+   elegirlas a mano con clic (Ctrl+clic para varias, Shift+clic para un
+   rango).
+
+9) ARRASTRAR Y SOLTAR ARCHIVOS (drag & drop)
+   Si instalaste "tkinterdnd2" (ver el paso 1), puedes arrastrar
+   archivos directo desde tu explorador de archivos hasta la ventana,
+   en vez de darle a "Examinar…" — y NO hace falta soltarlo sobre un
+   renglón exacto: puedes soltar en CUALQUIER parte del panel
+   izquierdo (donde están los campos y la consola de Progreso), el
+   programa adivina solo qué es cada cosa:
+     • Un archivo .xlsx/.xls → se toma como el Excel (modo Constancias).
+     • Una carpeta → se toma como la carpeta de QRs (cambia solo al
+       modo "Carpeta (varios)" si hacía falta).
+     • Una imagen → depende del modo:
+         - En Constancias: siempre se toma como la plantilla.
+         - En QR: si todavía no habías puesto plantilla, la primera
+           imagen que sueltes se toma como la plantilla. Si ya tienes
+           plantilla, el programa se fija si la imagen "parece" un
+           código QR (cuadrada y de solo blanco/negro) — si parece QR,
+           la usa como el QR individual (cambia al modo "Un solo
+           archivo"); si no, la toma como una nueva plantilla.
+   Si el programa adivina mal en algún caso raro, siempre puedes seguir
+   usando los botones "Examinar…" normalmente para corregirlo.
+   Si no instalaste "tkinterdnd2", no pasa nada: todo sigue funcionando
+   igual, nada más no vas a poder arrastrar (usa "Examinar…" como
+   siempre).
+
+
+10) ACTUALIZACIONES REMOTAS Y CREAR EL .EXE
+   Idea: el .exe es solo un "lanzador" que se genera UNA vez. Tu código
+   (core/, gui/, paneles nuevos...) se descarga aparte y se actualiza
+   solo en la otra PC cada vez que tú publicas una versión.
+
+   Archivos nuevos:
+     launcher.py           -> lo que se convierte en .exe (casi no lo cambiarás)
+     actualizador.py       -> descarga/verifica/instala versiones (va dentro del .exe)
+     publicar.py           -> lo corres TÚ para publicar una versión nueva
+     actualizaciones.json  -> dice de DÓNDE bajar las actualizaciones
+     version.json          -> versión actual del código
+     constancias.spec, construir_exe.bat -> generan el .exe (en Windows)
+     gui/actualizaciones.py -> botón "Buscar actualizaciones" en la ventana
+
+   A) ELEGIR DÓNDE SE PUBLICAN (una sola vez) — edita actualizaciones.json:
+      Opción 1, carpeta sincronizada (la más fácil, gratis, sin servidor):
+        Google Drive para escritorio / OneDrive / Dropbox, o una carpeta de red.
+        {"origen": "G:\\Mi unidad\\Constancias_updates"}
+        (la ruta debe existir igual en la otra PC; con Drive/OneDrive
+        instalado en ambas, normalmente sí, pero revisa la letra de unidad)
+      Opción 2, GitHub (repositorio PÚBLICO) o cualquier página web:
+        {"origen": "https://raw.githubusercontent.com/USUARIO/REPO/main/version.json"}
+        Ojo: GitHub tarda unos minutos en reflejar cambios; un repo
+        privado NO funciona con este método.
+      Ese archivo debe quedar también dentro del .exe (se copia solo al construirlo).
+      Si necesitas cambiarlo en una PC ya instalada, pon un actualizaciones.json
+      en su carpeta de datos (%LOCALAPPDATA%\GeneradorConstancias\).
+
+   B) CREAR EL .EXE (una vez, EN WINDOWS — no se puede desde Linux/Mac)
+      Doble clic a construir_exe.bat. Queda en dist\GeneradorConstancias\.
+      Comprime esa carpeta y pásala a la otra PC. Solo repites este paso si
+      cambias launcher.py/actualizador.py o agregas una LIBRERÍA nueva
+      (pip install ...): en ese caso añádela a hiddenimports en constancias.spec.
+
+   C) PUBLICAR UNA ACTUALIZACIÓN (cada vez que cambies código)
+      1. Prueba tu cambio normal:  python3 constancias_gui.py
+      2. Publica:
+           python publicar.py --notas "Qué cambió"
+           (o con destino directo: python publicar.py --destino "G:\\Mi unidad\\Constancias_updates")
+         Sube 1.0.0 -> 1.0.1 solo. Con --minor / --major / --version X.Y.Z lo controlas.
+      3. Si NO usaste --destino, sube publicar/version.json y la carpeta
+         publicar/paquetes/ a tu origen (respetando esa estructura).
+      Listo. La otra PC lo detecta al abrir el programa (con una ventanita
+      "Buscando actualizaciones…"), o cada 30 min si se queda abierto (aparece
+      "Reiniciar para usar vX.Y.Z"), o con el botón "Buscar actualizaciones".
+      Un paquete nuevo (carpeta con __init__.py) se incluye solo.
+
+   D) SEGURIDAD Y RECUPERACIÓN
+      - Cada paquete se verifica con SHA-256 antes de instalarse.
+      - Si una versión nueva truena al abrir, se marca como mala y el programa
+        abre con la del .exe. Corrige y publica una versión MÁS ALTA.
+      - Para revertir un cambio malo: arréglalo y publica otro número (no
+        se aceptan versiones más bajas que la instalada).
+      - Bitácora de problemas: %LOCALAPPDATA%\GeneradorConstancias\actualizaciones.log
+      - Quien controle el origen controla el código que corre en la otra PC:
+        usa una carpeta/repo solo tuyo (con HTTPS si es web).
+      - publicar.py NUNCA sube los .json de datos (cuentas de correo, etc.).
+
+   E) DÓNDE SE GUARDAN LOS DATOS EN EL .EXE
+      Marcas manuales, preferencias y cuentas de correo: %LOCALAPPDATA%\GeneradorConstancias\
+      (no se pierden al actualizar). Los PDFs salen por defecto a
+      Documentos\Constancias UAdeO\salida. Si la plantilla.jpeg está junto al
+      código al construir, se copia sola a la carpeta de datos la primera vez.
