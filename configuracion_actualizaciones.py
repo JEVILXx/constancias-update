@@ -10,4 +10,4 @@
 # Ejemplo una vez que tengas tu propio repositorio en GitHub:
 # URL_MANIFIESTO = "https://raw.githubusercontent.com/tu-usuario/tu-repo/main/manifiesto.json"
 
-URL_MANIFIESTO = "https://github.com/JEVILXx/constancias-update"
+URL_MANIFIESTO = "https://raw.githubusercontent.com/JEVILXx/constancias-update/refs/heads/main/manifiesto.json"
