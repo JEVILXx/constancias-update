@@ -16,12 +16,12 @@ from typing import Callable, Optional
 import numpy as np
 from PIL import Image
 
-from .rutas_datos import carpeta_datos
 from .utils import _hash_archivo, quitar_acentos_archivo, _clave_orden_alfabetico
+from .base_dir import carpeta_base
 
 EXTENSIONES_IMAGEN_QR = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"}
 
-CAJAS_QR_MANUALES_PATH = carpeta_datos() / ".constancias_cajas_qr.json"
+CAJAS_QR_MANUALES_PATH = carpeta_base() / ".constancias_cajas_qr.json"
 
 
 @dataclass

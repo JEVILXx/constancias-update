@@ -5,10 +5,10 @@ Interfaz gráfica del Generador de Constancias y QR, dividida en módulos:
   gui.rutas               -> rutas de archivos/preferencias
   gui.dnd                 -> soporte de arrastrar y soltar (opcional)
   gui.dialogos            -> ventanas secundarias (marcadores manuales, cuentas)
+  gui.actualizaciones_ui  -> diálogo de aviso de actualizaciones
   gui.comunes             -> ComunesMixin: layout, cola de progreso, drag&drop
   gui.panel_constancias   -> PanelConstanciasMixin: modo Constancias
   gui.panel_qr            -> PanelQRMixin: modo Códigos QR
-  gui.actualizaciones     -> ActualizacionesMixin: botón/aviso de actualizaciones remotas
   gui.app                 -> ConstanciasGUI, la clase final que junta todo
 """
 

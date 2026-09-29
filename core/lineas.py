@@ -22,10 +22,10 @@ from typing import Optional
 import numpy as np
 from PIL import Image
 
-from .rutas_datos import carpeta_datos
 from .utils import _hash_archivo
+from .base_dir import carpeta_base
 
-LINEAS_MANUALES_PATH = carpeta_datos() / ".constancias_lineas.json"
+LINEAS_MANUALES_PATH = carpeta_base() / ".constancias_lineas.json"
 
 
 def _leer_lineas_manuales() -> dict:

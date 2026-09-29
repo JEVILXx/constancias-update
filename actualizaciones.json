@@ -1,6 +1,0 @@
-{
-  "_ayuda": "Pon en 'origen' la URL de tu version.json (https://...) o la ruta de una carpeta compartida/sincronizada (por ejemplo G:\\Mi unidad\\Constancias). Déjalo vacío para desactivar las actualizaciones.",
-  "origen": "https://drive.google.com/drive/folders/1U77tMr3M8Kw9L05ru3aqERCpu75Zndy4?hl=es-419",
-  "activo": true,
-  "timeout_segundos": 6
-}

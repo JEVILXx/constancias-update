@@ -6,7 +6,7 @@ Todo el código está organizado en paquetes para que ningún archivo sea
 demasiado largo:
 
     core/   -> motor de generación (constancias, QR, correo, detección
-               automática de posiciones) — ver core/__init__.py
+               automática de posiciones, actualizaciones) — ver core/__init__.py
     gui/    -> interfaz gráfica (ventanas, paneles, diálogos) — ver
                gui/__init__.py
 

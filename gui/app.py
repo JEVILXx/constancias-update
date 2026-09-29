@@ -17,10 +17,12 @@ from .rutas import CARPETA, PLANTILLA_DEFAULT, SALIDA_DEFAULT, carpeta_documento
 from .comunes import ComunesMixin
 from .panel_constancias import PanelConstanciasMixin
 from .panel_qr import PanelQRMixin
-from .actualizaciones import ActualizacionesMixin
+from .actualizaciones_ui import verificar_actualizaciones_en_segundo_plano
+from core.actualizaciones import version_actual
+from configuracion_actualizaciones import URL_MANIFIESTO
 
 
-class ConstanciasGUI(ComunesMixin, PanelConstanciasMixin, PanelQRMixin, ActualizacionesMixin, BaseVentana):
+class ConstanciasGUI(ComunesMixin, PanelConstanciasMixin, PanelQRMixin, BaseVentana):
     def __init__(self):
         super().__init__()
         self.title("Generador de Constancias UAdeO")
@@ -69,6 +71,22 @@ class ConstanciasGUI(ComunesMixin, PanelConstanciasMixin, PanelQRMixin, Actualiz
 
         self._construir_estilos()
         self._construir_layout()
+        self._construir_menu()
         self._aplicar_modo()
         self.after(100, self._revisar_cola)
-        self._iniciar_actualizaciones_en_segundo_plano()
+        # Revisión de actualizaciones al abrir: no hace nada si
+        # URL_MANIFIESTO está vacía, y falla en silencio si no hay
+        # internet (nunca interrumpe el uso normal del programa).
+        verificar_actualizaciones_en_segundo_plano(self, URL_MANIFIESTO, silencioso=True)
+
+    def _construir_menu(self):
+        menu_barra = tk.Menu(self)
+        menu_ayuda = tk.Menu(menu_barra, tearoff=0)
+        menu_ayuda.add_command(
+            label="Buscar actualizaciones ahora",
+            command=lambda: verificar_actualizaciones_en_segundo_plano(self, URL_MANIFIESTO, silencioso=False),
+        )
+        menu_ayuda.add_separator()
+        menu_ayuda.add_command(label=f"Versión instalada: {version_actual()}", state="disabled")
+        menu_barra.add_cascade(label="Ayuda", menu=menu_ayuda)
+        self.configure(menu=menu_barra)

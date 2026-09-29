@@ -567,7 +567,7 @@ class PanelConstanciasMixin:
         elif origen == "auto":
             self.linea_estado_var.set("Detectada automáticamente")
         else:
-            self.linea_estado_var.set("No se detectó la línea — usando posición aproximada")
+            self.linea_estado_var.set("Aviso: no se detectó la línea — usando posición aproximada")
 
     def _quitar_marca_manual(self):
         if not self.plantilla_path or not Path(self.plantilla_path).exists():

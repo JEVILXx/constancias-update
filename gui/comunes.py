@@ -101,10 +101,6 @@ class ComunesMixin:
             font=("Liberation Serif", 11, "bold"), relief="flat", padx=14, pady=6, cursor="hand2",
         ).pack(side="left")
 
-        # Versión + botón "Buscar actualizaciones" (esquina superior derecha)
-        if hasattr(self, "_construir_barra_actualizaciones"):
-            self._construir_barra_actualizaciones(header)
-
         # ---- Cuerpo: dos columnas ----
         cuerpo = ttk.Frame(self)
         cuerpo.pack(fill="both", expand=True, padx=20, pady=16)

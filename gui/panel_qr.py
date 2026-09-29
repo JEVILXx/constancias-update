@@ -277,7 +277,7 @@ class PanelQRMixin:
         elif origen == "auto":
             self.caja_qr_estado_var.set("Detectado automáticamente")
         else:
-            self.caja_qr_estado_var.set("No se detectó el recuadro — usando posición aproximada")
+            self.caja_qr_estado_var.set("Aviso: no se detectó el recuadro — usando posición aproximada")
 
     def _quitar_marca_manual_qr(self):
         if not self.plantilla_qr_path or not Path(self.plantilla_qr_path).exists():
