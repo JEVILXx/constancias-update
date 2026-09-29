@@ -1,0 +1,53 @@
+name: Publicar release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt pyinstaller
+
+      - name: Fijar versión desde el tag
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}".TrimStart('v')
+          Set-Content -Path VERSION -Value $v -NoNewline
+
+      - name: Compilar .exe
+        run: python -m PyInstaller constancias_gui.spec --noconfirm
+
+      - name: Empaquetar zip
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}".TrimStart('v')
+          Compress-Archive -Path dist\* -DestinationPath "app-$v.zip"
+
+      - name: Crear release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app-*.zip
+
+      - name: Actualizar manifiesto
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}".TrimStart('v')
+          $url = "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/app-$v.zip"
+          @{ version = $v; url_zip = $url; notas = "Versión $v" } | ConvertTo-Json | Set-Content -Path manifiesto.json
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add manifiesto.json
+          git commit -m "Manifiesto $v"
+          git push origin HEAD:main
